@@ -1,6 +1,28 @@
+# Dependencies
 backend/node_modules/
-backend/.env
-.DS_Store
-.log
+frontend/node_modules/
+
+# Environment files
+.env
+
+# Build outputs
 dist/
-coverage/
+dist-ssr/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+
+#Vite
+
+
+# IDE
+.vscode/
+!.vscode/extensions.json
+.idea/

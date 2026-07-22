@@ -6,6 +6,6 @@ app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
 
-import authRoutes from "./routes/redirection.js";
+import authRoutes from "./routes/authRoutes.js";
 
 app.use("/auth", authRoutes);
