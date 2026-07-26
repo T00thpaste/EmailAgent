@@ -42,7 +42,9 @@ function decodeBody(data = "") {
     return Buffer.from(
         data.replace(/-/g, "+").replace(/_/g, "/"),
         "base64"
-    ).toString("utf-8");
+    )
+        .toString("utf-8")
+        .replace(/\r\n/g, "\n");
 }
 
 function extractPlainText(part) {
@@ -66,6 +68,59 @@ function extractPlainText(part) {
     }
 
     return "";
+}
+
+function extractHtml(part) {
+    if (!part) {
+        return "";
+    }
+
+    if (part.mimeType === "text/html" && part.body?.data) {
+        return decodeBody(part.body.data);
+    }
+
+    if (!part.parts) {
+        return "";
+    }
+
+    for (const child of part.parts) {
+        const html = extractHtml(child);
+
+        if (html) {
+            return html;
+        }
+    }
+
+    return "";
+}
+
+function extractAttachments(part) {
+    if(!part) {
+        return "";
+    }
+
+    console.log(part.mimeType, part.filename);
+    const attachments = [];
+
+    if(part.filename?.trim()) {
+        attachments.push({
+            filename: part.filename,
+            mimeType: part.mimeType,
+            size: part.body?.size ?? 0,
+            attachmentId: part.body?.attachmentId ?? null
+        });
+    }
+
+    if(!part.parts) {
+        return attachments;
+    }
+
+    for(const child of part.parts) {
+        const att = extractAttachments(child);
+        attachments.push(...att);
+    }
+
+    return attachments;
 }
 
 export function buildInboxEmail(email) {
@@ -101,9 +156,14 @@ export function buildInboxEmail(email) {
 }
 
 export function buildFullEmail(email) {
+    const attachments = extractAttachments(email.payload);
+
     return {
         body: {
-            text: extractPlainText(email.payload)
-        }
+            text: extractPlainText(email.payload)//,
+            // html: extractHtml(email.payload)
+        },
+
+        attachments
     };
 }
