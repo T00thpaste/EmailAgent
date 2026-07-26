@@ -1,6 +1,6 @@
 import express from "express";
 import oauth2Client from "../config/oAuth.js";
-import { getEmails } from "../controllers/emailController.js";
+import { getEmails, getEmail } from "../controllers/emailController.js";
 
 const router = express.Router();
 
@@ -35,5 +35,7 @@ router.get("/google/callback", async (req, res) => {
 });
 
 router.get("/emails", getEmails);
+
+router.get("/emails/:id", getEmail);
 
 export default router;

@@ -1,32 +1,49 @@
 import { google } from "googleapis";
 import oauth2Client from "../config/oAuth.js";
-import { formatEmail } from "../utils/emailFormatter.js";
+import { buildInboxEmail, buildFullEmail } from "../utils/emailFormatter.js";
 
-export async function fetchInboxEmails() {
+function getGmailClient() {
   oauth2Client.setCredentials({
     refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
   });
 
-  const gmail = google.gmail({
+  return google.gmail({
     version: "v1",
     auth: oauth2Client,
   });
+}
 
-  const response = await gmail.users.messages.list({
+export async function getInboxEmails() {
+  const gmail = getGmailClient();
+
+  const { data } = await gmail.users.messages.list({
     userId: "me",
     maxResults: 10,
   });
 
   const emails = await Promise.all(
-    response.data.messages.map(async (msg) => {
+    data.messages.map(async (msg) => {
       const email = await gmail.users.messages.get({
         userId: "me",
         id: msg.id,
+        format: "metadata",
       });
 
-      return formatEmail(email.data);
+      return buildInboxEmail(email.data);
     })
   );
 
   return emails;
+}
+
+export async function getEmailById(id) {
+    const gmail = getGmailClient();
+
+    const { data } = await gmail.users.messages.get({
+        userId: "me",
+        id,
+        format: "full",
+    });
+
+    return buildFullEmail(data);
 }
