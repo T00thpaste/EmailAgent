@@ -1,31 +1,19 @@
-import { useState } from "react";
-import { fetchEmails } from "../services/emailService";
 import EmailCard from "./EmailCard";
+import "../App.css"
 
-function Inbox() {
-  const [emails, setEmails] = useState([]);
-
-  const loadEmails = async () => {
-    try {
-      const data = await fetchEmails();
-      setEmails(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+function Inbox({ emails, loading, onSelect, selectedId }) {
+  if (loading) {
+    return <p className="placeholder-text">Loading emails...</p>;
+  }
 
   return (
-    <div>
-      <button onClick={loadEmails}>
-        Load Emails
-      </button>
-
-      <hr />
-
+    <div className="inbox">
       {emails.map((email) => (
         <EmailCard
           key={email.id}
           email={email}
+          onClick={() => onSelect(email.id)}
+          active={email.id === selectedId}
         />
       ))}
     </div>

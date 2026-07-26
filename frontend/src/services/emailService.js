@@ -9,3 +9,13 @@ export async function fetchEmails() {
 
   return response.json();
 }
+
+export async function fetchEmail(id) {
+    const response = await fetch(`${API_URL}/auth/emails/${id}`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch email");
+    }
+
+    return response.json();
+}

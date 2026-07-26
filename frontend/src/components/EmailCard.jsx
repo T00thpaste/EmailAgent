@@ -1,15 +1,21 @@
-function EmailCard({ email }) {
+import { Weight } from "lucide-react";
+import "../App.css"
+
+function EmailCard({ email, onClick, active }) {
   return (
-    <div>
-      <h3>{email.subject}</h3>
-      <p>
+    <div
+      className={`email-card ${active ? "active" : ""}`}
+      onClick={onClick}
+    >
+      <h3 style={{fontWeight: "500"}}>{email.subject}</h3>
+
+      <p style={{fontWeight: "400"}}>
         {email.from.name
-          ? `${email.from.name} <${email.from.email}>`
+          ? `${email.from.name}`
           : email.from.email}
       </p>
-      <p>{email.date}</p>
-      <p>{email.snippet}</p>
-      <hr />
+
+      <p style={{fontWeight: "300"}}>{email.date}</p>
     </div>
   );
 }
