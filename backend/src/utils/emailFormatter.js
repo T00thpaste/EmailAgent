@@ -149,21 +149,26 @@ export function buildInboxEmail(email) {
         starred,
         important,
 
-        hasAttachments: email.payload.parts?.some(
-            part => part.filename && part.filename.length > 0
-        ) ?? false
+        hasAttachments: extractAttachments(email.payload)
     };
 }
 
 export function buildFullEmail(email) {
-    const attachments = extractAttachments(email.payload);
+    const headers = email.payload.headers;
+    const inboxEmail = buildInboxEmail(email);
 
     return {
+        ...inboxEmail,
+        to: parseRecipients(getHeader(headers, "To")),
+        cc: parseRecipients(getHeader(headers, "Cc")),
+        bcc: parseRecipients(getHeader(headers, "Bcc")),
+
         body: {
-            text: extractPlainText(email.payload)//,
-            // html: extractHtml(email.payload)
+            plainText: extractPlainText(email.payload),
+            html: extractHtml(email.payload)
         },
 
-        attachments
+        attachments: extractAttachments(email.payload),
+        labels: email.labelIds
     };
 }
