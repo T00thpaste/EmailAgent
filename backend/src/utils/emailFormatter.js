@@ -96,10 +96,9 @@ function extractHtml(part) {
 
 function extractAttachments(part) {
     if(!part) {
-        return "";
+        return [];
     }
 
-    console.log(part.mimeType, part.filename);
     const attachments = [];
 
     if(part.filename?.trim()) {
@@ -149,7 +148,7 @@ export function buildInboxEmail(email) {
         starred,
         important,
 
-        hasAttachments: extractAttachments(email.payload)
+        hasAttachments: extractAttachments(email.payload).length>0
     };
 }
 

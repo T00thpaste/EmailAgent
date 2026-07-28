@@ -18,7 +18,7 @@ export async function getInboxEmails() {
 
   const { data } = await gmail.users.messages.list({
     userId: "me",
-    maxResults: 10,
+    maxResults: 50,
   });
 
   const emails = await Promise.all(
