@@ -1,17 +1,16 @@
 const POLLING_INTERVAL = Number(process.env.POLLING_INTERVAL);
-import emailCache from "../../cache/emailCache.js";
+let polling = false;
+import emailRepository from "../../repositories/emailRepository.js";
 import { getHistory, getInboxEmailById } from "../gmailService.js";
 
 async function syncEmails() {
-    if (!emailCache.isInitialized()) {
+    if (!emailRepository.isInitialized()) {
         console.log("Cache not initialized yet.");
         return;
     }
 
-    const oldHistoryId = emailCache.getLatestHistoryId();
-
+    const oldHistoryId = emailRepository.getLatestHistoryId();
     console.log(`Checking Gmail history after ${oldHistoryId}...`);
-
     const history = await getHistory(oldHistoryId);
 
     if (!history.history) {
@@ -19,31 +18,45 @@ async function syncEmails() {
         return;
     }
 
-    for (const record of history.history) {
-        if (!record.messagesAdded) continue;
-
-        for (const message of record.messagesAdded) {
-            const email = await getInboxEmailById(message.message.id);
-
-            emailCache.addEmail(email);
-        }
-    }
-
-    emailCache.setLatestHistoryId(history.historyId);
-
+    await processHistory(history);
+    emailRepository.setLatestHistoryId(history.historyId);
     console.log(`Synchronization complete. New History ID: ${history.historyId}`);
 }
 
 export default function startPolling() {
+    if(polling) {
+        console.log("Polling already running");
+        return;
+    }
+
+    polling = true;
     pollingLoop();
 }
 
 async function pollingLoop() {
+    if(!polling) return;
+
     try {
         await syncEmails();
     } catch (err) {
         console.error("Polling failed:", err);
     }
     
-    setTimeout(pollingLoop, POLLING_INTERVAL);
+    if(polling) setTimeout(pollingLoop, POLLING_INTERVAL);
+}
+
+export function stopPolling() {
+    polling = false;
+}
+
+async function processHistory(history) {
+    for (const record of history.history) {
+        if (!record.messagesAdded) continue;
+
+        for (const message of record.messagesAdded) {
+            const email = await getInboxEmailById(message.message.id);
+
+            emailRepository.addEmail(email);
+        }
+    }
 }

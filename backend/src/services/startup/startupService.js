@@ -1,4 +1,4 @@
-import emailCache from "../../cache/emailCache.js";
+import emailRepository from "../../repositories/emailRepository.js";
 import { getInboxEmails } from "../gmailService.js";
 
 export async function initialize() {
@@ -6,8 +6,8 @@ export async function initialize() {
 
     const { emails, historyId } = await getInboxEmails();
 
-    emailCache.replaceAll(emails);
-    emailCache.setLatestHistoryId(historyId);
+    emailRepository.replaceAll(emails);
+    emailRepository.setLatestHistoryId(historyId);
 
     console.log(`Cached ${emails.length} emails.`);
     console.log(`Latest History ID: ${historyId}`);
