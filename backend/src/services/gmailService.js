@@ -16,6 +16,10 @@ function getGmailClient() {
 export async function getInboxEmails() {
   const gmail = getGmailClient();
 
+  const { data: profile } = await gmail.users.getProfile({
+    userId: "me",
+  });
+
   const { data } = await gmail.users.messages.list({
     userId: "me",
     maxResults: 50,
@@ -33,7 +37,10 @@ export async function getInboxEmails() {
     })
   );
 
-  return emails;
+  return {
+    emails,
+    historyId: profile.historyId,
+  };
 }
 
 export async function getEmailById(id) {
@@ -46,4 +53,27 @@ export async function getEmailById(id) {
     });
 
     return buildFullEmail(data);
+}
+
+export async function getHistory(startHistoryId) {
+  const gmail = getGmailClient();
+
+  const { data } = await gmail.users.history.list({
+    userId: "me",
+    startHistoryId,
+  });
+
+  return data;
+}
+
+export async function getInboxEmailById(id) {
+    const gmail = getGmailClient();
+
+    const { data } = await gmail.users.messages.get({
+        userId: "me",
+        id,
+        format: "metadata",
+    });
+
+    return buildInboxEmail(data);
 }
