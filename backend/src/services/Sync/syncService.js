@@ -9,7 +9,13 @@ async function syncEmails() {
         return;
     }
 
-    const oldHistoryId = emailRepository.getLatestHistoryId();
+    const oldHistoryId = await emailRepository.getLatestHistoryId();
+
+    if (!oldHistoryId) {
+        console.log("No History ID found. Skipping sync.");
+        return;
+    }
+
     console.log(`Checking Gmail history after ${oldHistoryId}...`);
     const history = await getHistory(oldHistoryId);
 
@@ -56,7 +62,7 @@ async function processHistory(history) {
         for (const message of record.messagesAdded) {
             const email = await getInboxEmailById(message.message.id);
 
-            emailRepository.addEmail(email);
+            await emailRepository.addEmail(email);
         }
     }
 }

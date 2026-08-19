@@ -1,28 +1,141 @@
-import emailCache from "../cache/emailCache.js";
+import pool from "../config/database.js";
+
+function toDatabaseValues(email) {
+    return [
+        email.id,
+        email.threadId,
+        email.subject,
+        email.from.name,
+        email.from.email,
+        new Date(email.date),
+        email.snippet,
+        email.body?.plainText ?? null,
+        email.body?.html ?? null,
+        email.labels ?? [],
+        email.attachments?.length > 0
+    ];
+}
 
 const emailRepository = {
-    getAll() {
-        return emailCache.getAll();
+    async getAll() {
+        const result = await pool.query(`
+            SELECT *
+            FROM emails
+            ORDER BY received_at DESC
+        `);
+
+        return result.rows;
     },
 
-    replaceAll(emails) {
-        return emailCache.replaceAll(emails);
+    async replaceAll(emails, historyId) {
+        const client = await pool.connect();
+
+        try {
+            await client.query("BEGIN");
+
+            await client.query("DELETE FROM emails");
+
+            for (const email of emails) {
+                await client.query(
+                    `
+                    INSERT INTO emails (
+                        id,
+                        thread_id,
+                        subject,
+                        sender_name,
+                        sender_email,
+                        received_at,
+                        snippet,
+                        body_plain_text,
+                        body_html,
+                        labels,
+                        has_attachments
+                    )
+                    VALUES (
+                        $1, $2, $3, $4, $5,
+                        $6, $7, $8, $9, $10, $11
+                    )
+                    ON CONFLICT (id) DO NOTHING
+                    `,
+                    toDatabaseValues(email)
+                );
+            }
+
+            await client.query(
+                `
+                INSERT INTO sync_state (
+                    id,
+                    latest_history_id
+                )
+                VALUES (1, $1)
+                ON CONFLICT (id)
+                DO UPDATE SET
+                    latest_history_id = EXCLUDED.latest_history_id,
+                    updated_at = NOW()
+                `,
+                [historyId]
+            );
+
+            await client.query("COMMIT");
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
+        }
     },
 
-    addEmail(email) {
-        emailCache.addEmail(email);
+    async addEmail(email) {
+        const values = toDatabaseValues(email);
+        await pool.query(
+            `
+            INSERT INTO emails (
+                id,
+                thread_id,
+                subject,
+                sender_name,
+                sender_email,
+                received_at,
+                snippet,
+                body_plain_text,
+                body_html,
+                labels,
+                has_attachments
+            )
+            VALUES (
+                $1, $2, $3, $4, $5,
+                $6, $7, $8, $9, $10, $11
+            )
+            ON CONFLICT (id) DO NOTHING
+            `,
+            values
+        );
     },
 
-    getLatestHistoryId() {
-        return emailCache.getLatestHistoryId();
+    async getLatestHistoryId() {
+        const result = await pool.query(`
+            SELECT latest_history_id
+            FROM sync_state
+            WHERE id = 1
+        `);
+
+        return result.rows[0]?.latest_history_id ?? null;
     },
 
-    setLatestHistoryId(id) {
-        emailCache.setLatestHistoryId(id);
+    async setLatestHistoryId(id) {
+        await pool.query(`
+            INSERT INTO sync_state (id, latest_history_id)
+            VALUES (1, $1)
+            ON CONFLICT (id)
+            DO UPDATE SET
+                latest_history_id = EXCLUDED.latest_history_id,
+                updated_at = NOW()
+        `, [id]);
     },
 
-    isInitialized() {
-        return emailCache.isInitialized();
+    async isInitialized() {
+        const historyId = await this.getLatestHistoryId();
+        return historyId !== null;
     }
 };
 

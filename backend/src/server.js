@@ -2,6 +2,7 @@ import app from "./app.js";
 import authRoutes from "./routes/authRoutes.js";
 import startPolling from "./services/Sync/syncService.js"
 import { initialize } from "./services/startup/startupService.js";
+import pool from "./config/database.js";
 
 app.use("/auth", authRoutes);
 
@@ -15,5 +16,9 @@ async function startServer() {
         startPolling();
     });
 }
+
+const result = await pool.query("SELECT NOW()");
+
+console.log("Database connected:", result.rows[0]);
 
 startServer();

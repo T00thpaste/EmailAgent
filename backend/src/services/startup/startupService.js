@@ -6,8 +6,7 @@ export async function initialize() {
 
     const { emails, historyId } = await getInboxEmails();
 
-    emailRepository.replaceAll(emails);
-    emailRepository.setLatestHistoryId(historyId);
+    await emailRepository.replaceAll(emails, historyId);
 
     console.log(`Cached ${emails.length} emails.`);
     console.log(`Latest History ID: ${historyId}`);

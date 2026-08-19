@@ -30,10 +30,10 @@ export async function getInboxEmails() {
       const email = await gmail.users.messages.get({
         userId: "me",
         id: msg.id,
-        format: "metadata",
+        format: "full",
       });
 
-      return buildInboxEmail(email.data);
+      return buildFullEmail(email.data);
     })
   );
 
@@ -72,8 +72,8 @@ export async function getInboxEmailById(id) {
     const { data } = await gmail.users.messages.get({
         userId: "me",
         id,
-        format: "metadata",
+        format: "full",
     });
 
-    return buildInboxEmail(data);
+    return buildFullEmail(data);
 }
