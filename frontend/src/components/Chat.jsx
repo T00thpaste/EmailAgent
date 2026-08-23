@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ArrowUp } from "lucide-react";
 import "../App.css";
 import { askQuestion } from "../services/chatService";
 
@@ -45,7 +46,7 @@ function Chat() {
         />
 
         <button type="submit" disabled={loading}>
-          Send
+          <ArrowUp size={20} />
         </button>
       </form>
     </div>
