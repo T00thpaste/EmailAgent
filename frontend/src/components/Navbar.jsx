@@ -1,21 +1,27 @@
 import { MessageCircle, Mail } from "lucide-react";
 
-function Navbar() {
+function Navbar({ onViewChange }) {
   return (
     <nav className="navbar">
-        <div className="logo">
-            MailAssistant
-        </div>
+      <div className="logo">
+        MailAssistant
+      </div>
 
-        <div className="nav-buttons">
-            <button className="icon-button">
-                <MessageCircle size={22} />
-            </button>
+      <div className="nav-buttons">
+        <button
+          className="icon-button"
+          onClick={() => onViewChange("chat")}
+        >
+          <MessageCircle size={22} />
+        </button>
 
-            <button className="icon-button">
-                <Mail size={22} />
-            </button>
-        </div>
+        <button
+          className="icon-button"
+          onClick={() => onViewChange("email")}
+        >
+          <Mail size={22} />
+        </button>
+      </div>
     </nav>
   );
 }

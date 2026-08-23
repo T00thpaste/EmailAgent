@@ -1,7 +1,7 @@
 const POLLING_INTERVAL = Number(process.env.POLLING_INTERVAL);
 let polling = false;
 import emailRepository from "../../repositories/emailRepository.js";
-import { getHistory, getInboxEmailById } from "../gmailService.js";
+import { getHistory, getEmailById } from "../gmailService.js";
 import emailCache from "../../cache/emailCache.js";
 
 async function syncEmails() {
@@ -61,7 +61,7 @@ async function processHistory(history) {
         if (!record.messagesAdded) continue;
 
         for (const message of record.messagesAdded) {
-            const email = await getInboxEmailById(message.message.id);
+            const email = await getEmailById(message.message.id);
 
             await emailRepository.addEmail(email);
             emailCache.addEmail(email);

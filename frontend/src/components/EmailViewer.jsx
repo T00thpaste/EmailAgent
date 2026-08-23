@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import "../App.css"
 
 function EmailViewer({ email, loading }) {
@@ -38,7 +39,7 @@ function EmailViewer({ email, loading }) {
         {email.body.html ? (
             <div
                 dangerouslySetInnerHTML={{
-                    __html: email.body.html,
+                    __html: DOMPurify.sanitize(email.body.html),
                 }}
             />
         ) : (

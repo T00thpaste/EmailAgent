@@ -1,6 +1,6 @@
 import { google } from "googleapis";
 import oauth2Client from "../config/oAuth.js";
-import { buildInboxEmail, buildFullEmail } from "../utils/emailFormatter.js";
+import { buildFullEmail } from "../utils/emailFormatter.js";
 
 function getGmailClient() {
   oauth2Client.setCredentials({
@@ -76,16 +76,4 @@ export async function getHistory(startHistoryId) {
   });
 
   return data;
-}
-
-export async function getInboxEmailById(id) {
-    const gmail = getGmailClient();
-
-    const { data } = await gmail.users.messages.get({
-        userId: "me",
-        id,
-        format: "full",
-    });
-
-    return buildFullEmail(data);
 }

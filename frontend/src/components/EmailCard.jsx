@@ -1,4 +1,3 @@
-import { Weight } from "lucide-react";
 import "../App.css"
 
 function EmailCard({ email, onClick, active }) {

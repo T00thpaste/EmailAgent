@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+import { API_URL } from "./apiConfig";
 
 export async function fetchEmails() {
   const response = await fetch(`${API_URL}/auth/emails`);

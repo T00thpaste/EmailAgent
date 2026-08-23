@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import searchRoutes from "./routes/searchRoutes.js";
+import askRoutes from "./routes/askRoutes.js";
 
 const app = express();
 
@@ -12,5 +13,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/search", searchRoutes);
+app.use("/api/ask", askRoutes);
 
 export default app;

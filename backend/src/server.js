@@ -1,7 +1,7 @@
 import "dotenv/config";
 import app from "./app.js";
 import authRoutes from "./routes/authRoutes.js";
-import startPolling from "./services/Sync/syncService.js"
+import startPolling from "./services/sync/syncService.js"
 import { initialize } from "./services/startup/startupService.js";
 import pool from "./config/database.js";
 

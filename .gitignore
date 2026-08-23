@@ -21,8 +21,10 @@ yarn-error.log*
 
 #Vite
 
-
 # IDE
 .vscode/
 !.vscode/extensions.json
 .idea/
+
+# Other
+.claude/

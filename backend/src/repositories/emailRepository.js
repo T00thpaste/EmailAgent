@@ -81,8 +81,9 @@ const emailRepository = {
         try {
             await client.query("BEGIN");
 
-            await client.query("DELETE FROM emails");
-
+            // Upsert instead of delete-then-insert: emails.id cascades to
+            // email_embeddings, so wiping the table here would silently
+            // destroy every embedding on each restart/re-sync.
             for (const email of emails) {
                 await client.query(
                     `
@@ -103,7 +104,17 @@ const emailRepository = {
                         $1, $2, $3, $4, $5,
                         $6, $7, $8, $9, $10, $11
                     )
-                    ON CONFLICT (id) DO NOTHING
+                    ON CONFLICT (id) DO UPDATE SET
+                        thread_id = EXCLUDED.thread_id,
+                        subject = EXCLUDED.subject,
+                        sender_name = EXCLUDED.sender_name,
+                        sender_email = EXCLUDED.sender_email,
+                        received_at = EXCLUDED.received_at,
+                        snippet = EXCLUDED.snippet,
+                        body_plain_text = EXCLUDED.body_plain_text,
+                        body_html = EXCLUDED.body_html,
+                        labels = EXCLUDED.labels,
+                        has_attachments = EXCLUDED.has_attachments
                     `,
                     toDatabaseValues(email)
                 );
