@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
     try {
-        const { question } = req.body;
+        const { question, history } = req.body;
 
         if (!question) {
             return res.status(400).json({
@@ -13,7 +13,17 @@ router.post("/", async (req, res) => {
             });
         }
 
-        const result = await answerQuestion(question);
+        const recentHistory = Array.isArray(history)
+            ? history
+                .slice(-6)
+                .filter((turn) => turn && typeof turn.content === "string")
+                .map((turn) => ({
+                    role: turn.role === "user" ? "user" : "assistant",
+                    content: turn.content,
+                }))
+            : [];
+
+        const result = await answerQuestion(question, recentHistory);
 
         res.json(result);
     } catch (error) {

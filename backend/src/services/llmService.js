@@ -8,6 +8,10 @@ export async function generateAnswer(prompt) {
             model: "llama3.2:3b",
             prompt,
             stream: false,
+            options: {
+                temperature: 0.3,
+                num_predict: 500,
+            },
         }),
     });
 
