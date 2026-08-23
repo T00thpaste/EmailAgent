@@ -2,9 +2,10 @@ const POLLING_INTERVAL = Number(process.env.POLLING_INTERVAL);
 let polling = false;
 import emailRepository from "../../repositories/emailRepository.js";
 import { getHistory, getInboxEmailById } from "../gmailService.js";
+import emailCache from "../../cache/emailCache.js";
 
 async function syncEmails() {
-    if (!emailRepository.isInitialized()) {
+    if (!(await emailRepository.isInitialized())) {
         console.log("Cache not initialized yet.");
         return;
     }
@@ -25,7 +26,7 @@ async function syncEmails() {
     }
 
     await processHistory(history);
-    emailRepository.setLatestHistoryId(history.historyId);
+    await emailRepository.setLatestHistoryId(history.historyId);
     console.log(`Synchronization complete. New History ID: ${history.historyId}`);
 }
 
@@ -63,6 +64,7 @@ async function processHistory(history) {
             const email = await getInboxEmailById(message.message.id);
 
             await emailRepository.addEmail(email);
+            emailCache.addEmail(email);
         }
     }
 }

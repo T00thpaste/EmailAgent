@@ -13,34 +13,46 @@ function getGmailClient() {
   });
 }
 
-export async function getInboxEmails() {
-  const gmail = getGmailClient();
+export async function getInboxEmails(limit = 500) {
+    const gmail = getGmailClient();
 
-  const { data: profile } = await gmail.users.getProfile({
-    userId: "me",
-  });
-
-  const { data } = await gmail.users.messages.list({
-    userId: "me",
-    maxResults: 50,
-  });
-
-  const emails = await Promise.all(
-    data.messages.map(async (msg) => {
-      const email = await gmail.users.messages.get({
+    const { data: profile } = await gmail.users.getProfile({
         userId: "me",
-        id: msg.id,
-        format: "full",
-      });
+    });
 
-      return buildFullEmail(email.data);
-    })
-  );
+    let messages = [];
+    let pageToken;
 
-  return {
-    emails,
-    historyId: profile.historyId,
-  };
+    do {
+        const { data } = await gmail.users.messages.list({
+            userId: "me",
+            maxResults: Math.min(limit - messages.length, 100),
+            pageToken,
+        });
+
+        messages.push(...(data.messages || []));
+        pageToken = data.nextPageToken;
+
+    } while (pageToken && messages.length < limit);
+
+    messages = messages.slice(0, limit);
+
+    const emails = await Promise.all(
+        messages.map(async (msg) => {
+            const email = await gmail.users.messages.get({
+                userId: "me",
+                id: msg.id,
+                format: "full",
+            });
+
+            return buildFullEmail(email.data);
+        })
+    );
+
+    return {
+        emails,
+        historyId: profile.historyId,
+    };
 }
 
 export async function getEmailById(id) {
