@@ -1,3 +1,4 @@
+import "dotenv/config";
 import app from "./app.js";
 import authRoutes from "./routes/authRoutes.js";
 import startPolling from "./services/Sync/syncService.js"
@@ -18,7 +19,6 @@ async function startServer() {
 }
 
 const result = await pool.query("SELECT NOW()");
-
 console.log("Database connected:", result.rows[0]);
 
 startServer();

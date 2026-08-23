@@ -27,6 +27,54 @@ const emailRepository = {
         return result.rows;
     },
 
+    async saveEmbedding(emailId, embedding) {
+        const vector = `[${embedding.join(",")}]`;
+
+        console.log("Saving embedding for:", emailId);
+        console.log("Vector length:", embedding.length);
+
+        await pool.query(
+            `
+            INSERT INTO email_embeddings (
+                email_id,
+                embedding
+            )
+            VALUES ($1, $2)
+            ON CONFLICT (email_id)
+            DO UPDATE SET
+                embedding = EXCLUDED.embedding
+            `,
+            [emailId, vector]
+        );
+    },
+
+    async searchByEmbedding(embedding, limit = 10) {
+        const vector = `[${embedding.join(",")}]`;
+
+        const result = await pool.query(
+            `
+            SELECT
+                e.id,
+                e.thread_id,
+                e.subject,
+                e.sender_name,
+                e.sender_email,
+                e.received_at,
+                e.snippet,
+                e.has_attachments,
+                1 - (ee.embedding <=> $1::vector) AS similarity
+            FROM emails e
+            JOIN email_embeddings ee
+                ON e.id = ee.email_id
+            ORDER BY ee.embedding <=> $1::vector
+            LIMIT $2
+            `,
+            [vector, limit]
+        );
+
+        return result.rows;
+    },
+
     async replaceAll(emails, historyId) {
         const client = await pool.connect();
 
